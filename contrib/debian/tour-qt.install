@@ -1,0 +1,6 @@
+usr/local/bin/tour-qt usr/bin
+share/pixmaps/tour32.xpm usr/share/pixmaps
+share/pixmaps/tour16.xpm usr/share/pixmaps
+share/pixmaps/tour128.png usr/share/pixmaps
+debian/tour-qt.desktop usr/share/applications
+debian/tour-qt.protocol usr/share/kde4/services/

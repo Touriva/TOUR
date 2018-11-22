@@ -1,0 +1,3 @@
+debian/manpages/tourd.1
+debian/manpages/tour.conf.5
+debian/manpages/tour-cli.1

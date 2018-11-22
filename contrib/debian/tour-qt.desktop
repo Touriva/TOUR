@@ -1,0 +1,12 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=TOUR
+Comment=TOUR P2P Cryptocurrency
+Comment[fr]=TOUR, monnaie virtuelle cryptographique pair à pair
+Comment[tr]=TOUR, eşten eşe kriptografik sanal para birimi
+Exec=tour-qt %u
+Terminal=false
+Type=Application
+Icon=tour128
+MimeType=x-scheme-handler/tour;
+Categories=Office;Finance;

@@ -1,0 +1,11 @@
+[Protocol]
+exec=tour-qt '%u'
+protocol=tour
+input=none
+output=none
+helper=true
+listing=
+reading=false
+writing=false
+makedir=false
+deleting=false

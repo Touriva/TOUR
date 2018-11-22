@@ -1,0 +1,7 @@
+# List of fixed seed nodes for testnet
+
+192.99.70.99
+51.38.113.69
+
+# Onion nodes
+# thfsmmn2jTOURcoin.onion

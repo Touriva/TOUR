@@ -1,0 +1,20 @@
+<!DOCTYPE RCC><RCC version="1.0">
+    <qresource prefix="/translations">
+        <file alias="bg">locale/tour_bg.qm</file>
+        <file alias="de">locale/tour_de.qm</file>
+        <file alias="en">locale/tour_en.qm</file>
+        <file alias="es">locale/tour_es.qm</file>
+        <file alias="fi">locale/tour_fi.qm</file>
+        <file alias="fr">locale/tour_fr.qm</file>
+        <file alias="it">locale/tour_it.qm</file>
+        <file alias="ja">locale/tour_ja.qm</file>
+        <file alias="pl">locale/tour_pl.qm</file>
+        <file alias="pt">locale/tour_pt.qm</file>
+        <file alias="ru">locale/tour_ru.qm</file>
+        <file alias="sk">locale/tour_sk.qm</file>
+        <file alias="sv">locale/tour_sv.qm</file>
+        <file alias="vi">locale/tour_vi.qm</file>
+        <file alias="zh_CN">locale/tour_zh_CN.qm</file>
+        <file alias="zh_TW">locale/tour_zh_TW.qm</file>
+    </qresource>
+</RCC>
