@@ -1,21 +1,4 @@
-#!/usr/bin/env python
 
-#
-# Copyright (C) 2011  Patrick "p2k" Schneider <me@p2k-network.org>
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
 
 import subprocess, sys, re, os, shutil, stat, os.path, time
 from string import Template
@@ -331,7 +314,7 @@ def deployFrameworks(frameworks, bundlePath, binaryPath, strip, verbose, deploym
         # Get the Qt path from one of the Qt frameworks
         if deploymentInfo.qtPath is None and framework.isQtFramework():
             deploymentInfo.detectQtPath(framework.frameworkDirectory)
-        
+
         if framework.installName.startswith("@executable_path") or framework.installName.startswith(bundlePath):
             if verbose >= 2:
                 print framework.frameworkName, "already deployed, skipping."
@@ -541,7 +524,7 @@ if len(config.fancy) == 1:
         if verbose >= 1:
             sys.stderr.write("Error: Could not import plistlib which is required for fancy disk images.\n")
         sys.exit(1)
-    
+
     p = config.fancy[0]
     if verbose >= 3:
         print "Fancy: Loading \"%s\"..." % p
@@ -867,7 +850,7 @@ if config.dmg is not None:
         if verbose >= 2:
             print "+ Finalizing .dmg disk image +"
             time.sleep(5)
-        
+
         try:
             runHDIUtil("convert", dmg_name + ".temp", format="UDBZ", o=dmg_name + ".dmg", ov=True)
         except subprocess.CalledProcessError as e:
