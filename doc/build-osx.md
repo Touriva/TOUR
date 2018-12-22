@@ -5,7 +5,7 @@ This guide will show you how to build tourd (headless client) for OSX.
 Notes
 -----
 
-* Tested on OS X 10.7 through 10.14.2 on 64-bit Intel processors only.
+* Tested on OS X 10.7 through 10.11 on 64-bit Intel processors only.
 
 * All of the commands should be executed in a Terminal application. The
 built-in one is located in `/Applications/Utilities`.
@@ -55,9 +55,9 @@ NOTE: Building with Qt4 is still supported, however, doing so could result in a 
 
         make check
 
-4.  You can also create a .dmg that contains the .app bundle (optional):
+4.  (Optional) You can also install tourd to your path:
 
-        make deploy
+        make install
 
 Use Qt Creator as IDE
 ------------------------
