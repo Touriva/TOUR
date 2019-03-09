@@ -1,0 +1,14 @@
+prefix=/home/simon/stim/depends/i686-w64-mingw32
+exec_prefix=${prefix}
+libdir=${prefix}/lib
+includedir=${prefix}/include
+
+
+Name: Qt5 Network
+Description: Qt Network module
+Version: 5.5.0
+Libs: -L${libdir} -lQt5Networkd 
+Libs.private: -L/home/simon/stim/depends/i686-w64-mingw32/lib -lQt5Cored -lole32 -luuid -lws2_32 -ladvapi32 -lshell32 -luser32 -lkernel32 -lmpr -lqtpcred -ldnsapi -ladvapi32 -lssl -lcrypto -lcrypt32  
+Cflags: -I${includedir}/QtNetwork 
+Requires: Qt5Core
+

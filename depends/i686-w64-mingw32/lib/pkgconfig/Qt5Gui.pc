@@ -1,0 +1,14 @@
+prefix=/home/simon/stim/depends/i686-w64-mingw32
+exec_prefix=${prefix}
+libdir=${prefix}/lib
+includedir=${prefix}/include
+
+
+Name: Qt5 Gui
+Description: Qt Gui module
+Version: 5.5.0
+Libs: -L${libdir} -lQt5Guid 
+Libs.private: -lgdi32 -lcomdlg32 -loleaut32 -limm32 -lwinmm -L/home/simon/stim/depends/i686-w64-mingw32/lib -lQt5Cored -lole32 -luuid -lws2_32 -ladvapi32 -lshell32 -luser32 -lkernel32 -lmpr -lqtpcred -L/home/simon/stim/depends/i686-w64-mingw32/lib -lqtharfbuzzngd  
+Cflags: -I${includedir}/QtGui 
+Requires: Qt5Core
+

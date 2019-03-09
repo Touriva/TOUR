@@ -1,0 +1,14 @@
+prefix=/home/simon/stim/depends/i686-w64-mingw32
+exec_prefix=${prefix}
+libdir=${prefix}/lib
+includedir=${prefix}/include
+
+
+Name: Qt5 PlatformSupport
+Description: Qt PlatformSupport module
+Version: 5.5.0
+Libs: -L${libdir} -lQt5PlatformSupportd 
+Libs.private: -L/home/simon/stim/depends/i686-w64-mingw32/lib -lQt5Guid -lgdi32 -lcomdlg32 -loleaut32 -limm32 -lwinmm -lqtharfbuzzngd -lQt5DBusd -lnetapi32 -lQt5Cored -lole32 -luuid -lws2_32 -ladvapi32 -lshell32 -luser32 -lkernel32 -lmpr -lqtpcred   
+Cflags: -I${includedir}/QtPlatformSupport 
+Requires: Qt5Core Qt5Gui
+

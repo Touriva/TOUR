@@ -1,0 +1,14 @@
+prefix=/home/simon/stim/depends/i686-w64-mingw32
+exec_prefix=${prefix}
+libdir=${prefix}/lib
+includedir=${prefix}/include
+
+
+Name: Qt5 PrintSupport
+Description: Qt PrintSupport module
+Version: 5.5.0
+Libs: -L${libdir} -lQt5PrintSupportd 
+Libs.private: -L/home/simon/stim/depends/i686-w64-mingw32/lib -lQt5Widgetsd -lQt5Guid -lgdi32 -lcomdlg32 -loleaut32 -limm32 -lwinmm -lqtharfbuzzngd -lQt5Cored -lole32 -luuid -lws2_32 -ladvapi32 -lshell32 -luser32 -lkernel32 -lmpr -lqtpcred -lwinspool -lcomdlg32 -lgdi32 -luser32  
+Cflags: -I${includedir}/QtPrintSupport 
+Requires: Qt5Core Qt5Gui Qt5Widgets
+

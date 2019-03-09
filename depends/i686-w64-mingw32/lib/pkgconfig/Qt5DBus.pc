@@ -1,0 +1,14 @@
+prefix=/home/simon/stim/depends/i686-w64-mingw32
+exec_prefix=${prefix}
+libdir=${prefix}/lib
+includedir=${prefix}/include
+
+
+Name: Qt5 DBus
+Description: Qt DBus module
+Version: 5.5.0
+Libs: -L${libdir} -lQt5DBusd 
+Libs.private: -L/home/simon/stim/depends/i686-w64-mingw32/lib -lQt5Cored -lole32 -luuid -lws2_32 -ladvapi32 -lshell32 -luser32 -lkernel32 -lmpr -lqtpcred -lws2_32 -ladvapi32 -lnetapi32 -luser32  
+Cflags: -I${includedir}/QtDBus 
+Requires: Qt5Core
+
