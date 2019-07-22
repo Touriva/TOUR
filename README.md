@@ -1,8 +1,8 @@
-TOUR Core 1.0.0
+TOUR Core 1.1.0
 ===============================
 
 
-https://tourcoin.info
+https://touriva.info
 
 https://discord.gg/TWrkzJe
 
@@ -15,7 +15,7 @@ to operate with no central authority: managing transactions and issuing money
 are carried out collectively by the network. TOUR Core is the name of the open
 source software which enables the use of this currency.
 
-For more information see https://tourcoin.info.
+For more information see https://touriva.info.
 
 
 
