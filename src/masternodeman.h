@@ -102,7 +102,7 @@ public:
             READWRITE(strVersion);
         }
         else {
-            strVersion = SERIALIZATION_VERSION_STRING;
+            strVersion = SERIALIZATION_VERSION_STRING; 
             READWRITE(strVersion);
         }
 
@@ -154,7 +154,7 @@ public:
     int CountEnabled(int nProtocolVersion = -1);
 
     /// Count Masternodes by network type - NET_IPV4, NET_IPV6, NET_TOR
-    int CountByIP(int nNetworkType);
+    // int CountByIP(int nNetworkType);
 
     void DsegUpdate(CNode* pnode, CConnman& connman);
 
