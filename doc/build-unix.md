@@ -24,6 +24,13 @@ make
 make install # optional
 ```
 
+Alternative Ways to Build
+---------------------
+
+```
+./configure --enable-glibc-back-compat --prefix=`pwd`/depends/x86_64-pc-linux-gnu LDFLAGS="-static-libstdc++"
+```
+
 This will build tour-qt as well if the dependencies are met.
 
 Dependencies
@@ -264,3 +271,4 @@ To build executables for ARM:
 
 
 For further documentation on the depends system see [README.md](../depends/README.md) in the depends directory.
+
