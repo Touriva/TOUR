@@ -107,8 +107,7 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_DIP0001].nThreshold = 3226; // 80% of 4032
 
         // PoW algorithm change to Equihash [n=192, k=7]
-        consensus.nEquihashHeight = 300000; // not final
-        consensus.nEquihashStartTime = 1579132800; // Thu, 16th Jan 2020 00:00:00 GMT
+        consensus.nEquihashStartTime = 1579910400; // Sat, 25th Jan 2020 00:00:00 GMT
         const size_t N = 192, K = 7;
         BOOST_STATIC_ASSERT(equihash_parameters_acceptable(N, K));
         nEquihashN = N;
@@ -139,7 +138,7 @@ public:
         nPruneAfterHeight = 100000;
 
         genesis = CreateGenesisBlock(1539987651, 1731759, 0x1e0ffff0, 1, 50 * COIN);
-        consensus.hashGenesisBlock = genesis.GetHash();
+        consensus.hashGenesisBlock = genesis.GetHash(consensus);
         assert(consensus.hashGenesisBlock == uint256S("0x0000016a7cb7856c7f94dca410771e4e76f3c7f127ab2f4dfb7cd8a16ebb33c7"));
         assert(genesis.hashMerkleRoot == uint256S("0x477bb1f93cb2b4a412d76750c099c35a940e65a4f2008845abab8583f68f2b81"));
 
@@ -247,8 +246,7 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_DIP0001].nThreshold = 50; // 50% of 100
 
 		// PoW algorithm change to Equihash [n=192, k=7]
-        consensus.nEquihashHeight = 40; // not final
-        consensus.nEquihashStartTime = 1579132800; // Thu, 16th Jan 2020 00:00:00 GMT
+        consensus.nEquihashStartTime = 1579910400; // Sat, 25th Jan 2020 00:00:00 GMT
         const size_t N = 192, K = 7;
         BOOST_STATIC_ASSERT(equihash_parameters_acceptable(N, K));
         nEquihashN = N;
@@ -275,7 +273,7 @@ public:
         nPruneAfterHeight = 1000;
 
         genesis = CreateGenesisBlock(1537508794, 1851627, 0x1e0ffff0, 1, 50 * COIN);
-        consensus.hashGenesisBlock = genesis.GetHash();
+        consensus.hashGenesisBlock = genesis.GetHash(consensus);
         assert(consensus.hashGenesisBlock == uint256S("0x00000eb7e30782b34764b8f8c92865f73e789efe54c04970548082875b25a5f5"));
         assert(genesis.hashMerkleRoot == uint256S("0x477bb1f93cb2b4a412d76750c099c35a940e65a4f2008845abab8583f68f2b81"));
 
@@ -366,6 +364,17 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_DIP0001].nStartTime = 0;
         consensus.vDeployments[Consensus::DEPLOYMENT_DIP0001].nTimeout = 999999999999ULL;
 
+		// PoW algorithm change to Equihash [n=192, k=7]
+        consensus.nEquihashStartTime = 1579910400; // Sat, 25th Jan 2020 00:00:00 GMT
+        const size_t N = 192, K = 7;
+        BOOST_STATIC_ASSERT(equihash_parameters_acceptable(N, K));
+        nEquihashN = N;
+        nEquihashK = K;
+        
+        // Lwma related params
+        consensus.nZawyLwmaAveragingWindow = 15;
+
+
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork = uint256S("0x00");
 
@@ -382,7 +391,7 @@ public:
         nPruneAfterHeight = 1000;
 
         genesis = CreateGenesisBlock(1537508794, 2, 0x207fffff, 1, 50 * COIN);
-        consensus.hashGenesisBlock = genesis.GetHash();
+        consensus.hashGenesisBlock = genesis.GetHash(consensus);
         assert(consensus.hashGenesisBlock == uint256S("0x1fe39ef53a10f2ced58ffc7cf52ca80a03881fd5d62e8284831989ec89add8bb"));
         assert(genesis.hashMerkleRoot == uint256S("0x477bb1f93cb2b4a412d76750c099c35a940e65a4f2008845abab8583f68f2b81"));
 

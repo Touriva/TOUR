@@ -10,6 +10,10 @@
 #include "serialize.h"
 #include "uint256.h"
 
+namespace Consensus {
+    struct Params;
+};
+
 /** Nodes collect new transactions into a block, hash them into a hash tree,
  * and scan through nonce values to make the block's hash satisfy proof-of-work
  * requirements.  When they solve the proof-of-work, they broadcast the block
@@ -64,11 +68,18 @@ public:
     }
 
     uint256 GetHash() const;
+    
+    uint256 GetHash(const Consensus::Params&) const;
 
     int64_t GetBlockTime() const
     {
         return (int64_t)nTime;
     }
+    
+    bool IsEquihash() const;
+    
+    bool IsEquihash(const Consensus::Params&) const;
+    
 };
 
 

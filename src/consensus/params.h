@@ -63,8 +63,7 @@ struct Params {
     /** Block height and hash at which BIP34 becomes active */
     int BIP34Height;
     uint256 BIP34Hash;
-    /** Block height at which Equihash<192,7> becomes active */
-    int nEquihashHeight;
+    /** Block time after which Equihash<192,7> becomes active */
     int64_t nEquihashStartTime;
     /**
      * Minimum blocks including miner confirmation of the total of nMinerConfirmationWindow blocks in a retargetting period,

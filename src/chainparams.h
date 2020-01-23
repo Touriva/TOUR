@@ -69,26 +69,7 @@ public:
     uint64_t PruneAfterHeight() const { return nPruneAfterHeight; }
     unsigned int EquihashN() const { return nEquihashN; }
     unsigned int EquihashK() const { return nEquihashK; }
-    unsigned int EquihashN(int height) const
-    {
-        if(height >= consensus.nEquihashHeight) {
-            return nEquihashN;
-        } else {
-            return 0;
-        }
-    }
-    unsigned int EquihashK(int height) const
-    {
-        if(height >= consensus.nEquihashHeight) {
-            return nEquihashK;
-        } else {
-            return 0;
-        }
-    }
-    bool EquihashUseSalt(int height) const
-    {
-        return height >= consensus.nEquihashHeight;
-    }
+
     unsigned int EquihashSolutionWidth(int height) const;
 
     /** Make miner stop after a block is found. In RPC, don't return until nGenProcLimit blocks are generated */

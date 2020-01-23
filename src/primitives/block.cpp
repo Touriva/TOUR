@@ -5,6 +5,8 @@
 
 #include "primitives/block.h"
 
+#include <chainparams.h>
+#include <consensus/params.h>
 #include "hash.h"
 #include "tinyformat.h"
 #include "utilstrencodings.h"
@@ -13,14 +15,45 @@
 #include "crypto/Lyra2Z/Lyra2Z.h"
 #include "crypto/Lyra2Z/Lyra2.h"
 
+bool CBlockHeader::IsEquihash() const {
+    bool result;
+    printf("without params\n");
+    return false;
+}
+
+bool CBlockHeader::IsEquihash(const Consensus::Params& params) const {
+    bool result = nTime >= params.nEquihashStartTime;
+    if (result)
+    {
+        printf("Equihash\n");
+    }
+    else
+    {
+        printf ("Lyra2Z\n");
+    }
+    return result;
+}
+
+uint256 CBlockHeader::GetHash(const Consensus::Params& params) const
+{
+    if (IsEquihash(params))
+    {
+        // Equihash epoch, new block format
+       return SerializeHash(*this);
+    }
+    else
+    {
+        // legacy block format
+        uint256 thash;
+        lyra2z_hash(BEGIN(nVersion), BEGIN(thash));
+        return thash;
+    }
+}
 
 uint256 CBlockHeader::GetHash() const
 {
-    uint256 thash;
-
-    lyra2z_hash(BEGIN(nVersion), BEGIN(thash));
-
-    return thash;
+    const Consensus::Params& consensusParams = Params().GetConsensus();
+    return GetHash(consensusParams);
 }
 
 std::string CBlock::ToString() const
