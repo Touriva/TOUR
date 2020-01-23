@@ -8,6 +8,7 @@
 #include "arith_uint256.h"
 #include "chain.h"
 #include "chainparams.h"
+#include "crypto/equihash.h"
 #include "primitives/block.h"
 #include "uint256.h"
 #include "util.h"
@@ -105,9 +106,7 @@ unsigned int GetNextWorkRequiredBTC(const CBlockIndex* pindexLast, const CBlockH
 
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock, const Consensus::Params& params)
 {
-
-        return DarkGravityWave(pindexLast, params);
-
+    return DarkGravityWave(pindexLast, params);
 }
 
 // for DIFF_BTC only!
