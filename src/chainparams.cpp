@@ -18,6 +18,14 @@
 
 #include "chainparamsseeds.h"
 
+// For equihash_parameters_acceptable.
+#include <crypto/equihash.h>
+const unsigned int MAX_HEADERS_RESULTS = 2000;
+const unsigned int MAX_PROTOCOL_MESSAGE_LENGTH = 4 * 1000 * 1000;
+#define equihash_parameters_acceptable(N, K) \
+    ((CBlockHeader::HEADER_SIZE + equihash_solution_size(N, K))*MAX_HEADERS_RESULTS < \
+     MAX_PROTOCOL_MESSAGE_LENGTH-1000)
+
 
 static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesisOutputScript, uint32_t nTime, uint32_t nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
 {
@@ -98,6 +106,17 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_DIP0001].nWindowSize = 4032;
         consensus.vDeployments[Consensus::DEPLOYMENT_DIP0001].nThreshold = 3226; // 80% of 4032
 
+        // PoW algorithm change to Equihash [n=192, k=7]
+        consensus.nEquihashHeight = 300000; // not final
+        consensus.nEquihashStartTime = 1579132800; // Thu, 16th Jan 2020 00:00:00 GMT
+        const size_t N = 192, K = 7;
+        BOOST_STATIC_ASSERT(equihash_parameters_acceptable(N, K));
+        nEquihashN = N;
+        nEquihashK = K;
+        
+        // Lwma related params
+        consensus.nZawyLwmaAveragingWindow = 15;
+        
         // The best chain should have at least this much work.
        consensus.nMinimumChainWork = uint256S("0000000000000000000000000000000000000000000000000000000000b0001a"); // 10
 
@@ -226,6 +245,18 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_DIP0001].nTimeout = 1569024000; //Sat, 21 Sep 2019 00:00:00 +0000
         consensus.vDeployments[Consensus::DEPLOYMENT_DIP0001].nWindowSize = 100;
         consensus.vDeployments[Consensus::DEPLOYMENT_DIP0001].nThreshold = 50; // 50% of 100
+
+		// PoW algorithm change to Equihash [n=192, k=7]
+        consensus.nEquihashHeight = 40; // not final
+        consensus.nEquihashStartTime = 1579132800; // Thu, 16th Jan 2020 00:00:00 GMT
+        const size_t N = 192, K = 7;
+        BOOST_STATIC_ASSERT(equihash_parameters_acceptable(N, K));
+        nEquihashN = N;
+        nEquihashK = K;
+        
+        // Lwma related params
+        consensus.nZawyLwmaAveragingWindow = 15;
+
 
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork = uint256S("0x0000000000000000000000000000000000000000000000000000000000600015"); // 5
