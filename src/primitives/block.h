@@ -20,6 +20,7 @@
 class CBlockHeader
 {
 public:
+    static const size_t HEADER_SIZE = 4+32+32+4+4+4;  // Excluding Equihash solution
     // header
     int32_t nVersion;
     uint256 hashPrevBlock;
@@ -27,6 +28,7 @@ public:
     uint32_t nTime;
     uint32_t nBits;
     uint32_t nNonce;
+    std::vector<unsigned char> nSolution;  // Equihash solution.
 
     CBlockHeader()
     {
@@ -118,12 +120,37 @@ public:
         block.nTime          = nTime;
         block.nBits          = nBits;
         block.nNonce         = nNonce;
+        block.nSolution      = nSolution;
         return block;
     }
 
     std::string ToString() const;
 };
 
+/**
+ * Custom serializer for CBlockHeader that omits the nonce and solution, for use
+ * as input to Equihash.
+ */
+class CEquihashInput : private CBlockHeader
+{
+public:
+    CEquihashInput(const CBlockHeader &header)
+    {
+        CBlockHeader::SetNull();
+        *((CBlockHeader*)this) = header;
+    }
+
+    ADD_SERIALIZE_METHODS;
+
+    template <typename Stream, typename Operation>
+    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion) {
+        READWRITE(this->nVersion);
+        READWRITE(hashPrevBlock);
+        READWRITE(hashMerkleRoot);
+        READWRITE(nTime);
+        READWRITE(nBits);
+    }
+};
 
 /** Describes a place in the block chain to another node such that if the
  * other node doesn't have the same branch, it can find a recent common trunk.
