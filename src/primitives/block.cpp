@@ -16,9 +16,8 @@
 #include "crypto/Lyra2Z/Lyra2.h"
 
 bool CBlockHeader::IsEquihash() const {
-    bool result;
-    printf("without params\n");
-    return false;
+	const Consensus::Params& consensusParams = Params().GetConsensus();
+	return IsEquihash(consensusParams);
 }
 
 bool CBlockHeader::IsEquihash(const Consensus::Params& params) const {

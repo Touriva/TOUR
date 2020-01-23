@@ -50,6 +50,10 @@ public:
         READWRITE(nTime);
         READWRITE(nBits);
         READWRITE(nNonce);
+        if (IsEquihash())
+        {   
+            READWRITE(nSolution);
+        }
     }
 
     void SetNull()
