@@ -12,6 +12,7 @@
 #include "primitives/block.h"
 #include "uint256.h"
 #include "util.h"
+#include "streams.h"
 
 #include <math.h>
 
@@ -106,8 +107,124 @@ unsigned int GetNextWorkRequiredBTC(const CBlockIndex* pindexLast, const CBlockH
 
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock, const Consensus::Params& params)
 {
-    return DarkGravityWave(pindexLast, params);
+	assert(pindexLast != nullptr);
+	int nHeight = pindexLast->nHeight + 1;
+	
+	const CBlockIndex* pindexFirst = pindexLast;
+    for (int i = 0; pindexFirst && i < params.nZawyLwmaAveragingWindow; i++)
+    {
+        pindexFirst = pindexFirst->pprev;
+    }
+	assert(pindexFirst != nullptr);
+
+	LogPrintf("POW nHeight %i\n", nHeight);
+	LogPrintf("POW params equihash start time %u\n", params.nEquihashStartTime);
+	
+	LogPrintf("GNWR: pindexLast->nTime %u   pblock->nTime %u\n", pindexLast->nTime, pblock->nTime );
+	
+	if (pblock->nTime < params.nEquihashStartTime)
+	{
+		// Lyra2z epoch, DGW difficulty adjustment algorithm
+		return DarkGravityWave(pindexLast, params);
+	}
+	else if (pindexFirst->nTime < params.nEquihashStartTime) // Equihash epoch, but block count less than lwma averaging window
+	{
+        // beginning of Equihash 192_7 epoch, difficulty reset to the minimum
+        unsigned int nProofOfWorkLimit = UintToArith256(params.powLimit).GetCompact();
+        return nProofOfWorkLimit;
+    }
+	else
+	{
+		// Equihash 192_7 epoch, regular Zawy LWMA difficulty adjustment algorithm 
+		return LwmaGetNextWorkRequired(pindexLast, pblock, params);
+	}
 }
+
+
+unsigned int LwmaGetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock, const Consensus::Params& params)
+{
+    // Special difficulty rule for testnet:
+    // If the new block's timestamp is more than 2 * target block time
+    // then allow mining of a min-difficulty block.
+    if (params.fPowAllowMinDifficultyBlocks &&
+        pblock->GetBlockTime() > pindexLast->GetBlockTime() + params.nPowTargetSpacing * 2) {
+        return UintToArith256(params.powLimit).GetCompact();
+    }
+    return LwmaCalculateNextWorkRequired(pindexLast, params);
+}
+
+unsigned int LwmaCalculateNextWorkRequired(const CBlockIndex* pindexLast, const Consensus::Params& params)
+{
+    if (params.fPowNoRetargeting) {
+        return pindexLast->nBits;
+    }
+
+    const int64_t T = params.nPowTargetSpacing;
+    const int64_t N = params.nZawyLwmaAveragingWindow;
+    const int64_t k = N * (N + 1) * T / 2;
+    const int64_t height = pindexLast->nHeight;
+    const arith_uint256 powLimit = UintToArith256(params.powLimit);
+    
+    if (height < N) { return powLimit.GetCompact(); }
+
+    arith_uint256 sumTarget, previousDiff, nextTarget;
+    int64_t thisTimestamp, previousTimestamp;
+    int64_t t = 0, j = 0;
+
+    const CBlockIndex* blockPreviousTimestamp = pindexLast->GetAncestor(height - N);
+    previousTimestamp = blockPreviousTimestamp->GetBlockTime();
+
+    // Loop through N most recent blocks. 
+    for (int64_t i = height - N + 1; i <= height; i++) {
+        const CBlockIndex* block = pindexLast->GetAncestor(i);
+        thisTimestamp = (block->GetBlockTime() > previousTimestamp) ? block->GetBlockTime() : previousTimestamp + 1;
+
+        int64_t solvetime = std::min(6 * T, thisTimestamp - previousTimestamp);
+        previousTimestamp = thisTimestamp;
+
+        j++;
+        t += solvetime * j; // Weighted solvetime sum.
+        arith_uint256 target;
+        target.SetCompact(block->nBits);
+        sumTarget += target / (k * N);
+
+        if (i == height) { previousDiff = target.SetCompact(block->nBits); }
+    }
+
+    nextTarget = t * sumTarget;
+    
+    // 150% diff change
+    if (nextTarget > (previousDiff * 150) / 100) { nextTarget = (previousDiff * 150) / 100; }
+    if ((previousDiff * 67) / 100 > nextTarget) { nextTarget = (previousDiff * 67)/100; }
+    if (nextTarget > powLimit) { nextTarget = powLimit; }
+
+    return nextTarget.GetCompact();
+}
+
+bool CheckEquihashSolution(const CBlockHeader *pblock, const CChainParams& params)
+{
+    unsigned int n = params.EquihashN();
+    unsigned int k = params.EquihashK();
+
+    // Hash state
+    blake2b_state state;
+    EhInitialiseState(n, k, state);
+
+    // I = the block header minus nonce and solution.
+    CEquihashInput I{*pblock};
+    // I||V
+    CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+    ss << I;
+    ss << pblock->nNonce;
+
+    // H(I||V||...
+    blake2b_update(&state, (unsigned char*)&ss[0], ss.size());
+
+    bool isValid;
+    EhIsValidSolution(n, k, state, pblock->nSolution, isValid);
+    return isValid;
+}
+
 
 // for DIFF_BTC only!
 unsigned int CalculateNextWorkRequired(const CBlockIndex* pindexLast, int64_t nFirstBlockTime, const Consensus::Params& params)
