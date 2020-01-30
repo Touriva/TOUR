@@ -63,6 +63,8 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, const Consens
         bnNew = bnPowLimit;
     }
 
+//	LogPrintf("DGW bnNew.GetCompact() %8x\n", bnNew.GetCompact());
+
     return bnNew.GetCompact();
 }
 
@@ -116,12 +118,13 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
         pindexFirst = pindexFirst->pprev;
     }
 	assert(pindexFirst != nullptr);
-
+/*
 	LogPrintf("POW nHeight %i\n", nHeight);
 	LogPrintf("POW params equihash start time %u\n", params.nEquihashStartTime);
 	
 	LogPrintf("GNWR: pindexLast->nTime %u   pblock->nTime %u\n", pindexLast->nTime, pblock->nTime );
-	
+	LogPrintf("GNWR: pindexFirst->nTime %u   pindexFirst->nHeight %u\n", pindexFirst->nTime, pindexFirst->nHeight );
+*/	
 	if (pblock->nTime < params.nEquihashStartTime)
 	{
 		// Lyra2z epoch, DGW difficulty adjustment algorithm
@@ -215,7 +218,7 @@ bool CheckEquihashSolution(const CBlockHeader *pblock, const CChainParams& param
     // I||V
     CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
     ss << I;
-    ss << pblock->nNonce;
+    ss << pblock->nNonceNew;
 
     // H(I||V||...
     blake2b_update(&state, (unsigned char*)&ss[0], ss.size());
@@ -271,13 +274,18 @@ bool CheckProofOfWork(uint256 hash, unsigned int nBits, const Consensus::Params&
 
     // Check range
     if (fNegative || bnTarget == 0 || fOverflow || bnTarget > UintToArith256(params.powLimit))
-      //  return error("CheckProofOfWork(): nBits below minimum work");
+    {
+		LogPrintf("CheckProofOfWork(): nBits below minimum work\n");
         return false;
+	}
 
     // Check proof of work matches claimed amount
     if (UintToArith256(hash) > bnTarget)
-      //  return error("CheckProofOfWork(): hash doesn't match nBits");
-      return false;
+    {
+		LogPrintf("CheckProofOfWork(): hash doesn't match nBits\n");	
+		return false;
+	}
+      
     return true;
 }
 

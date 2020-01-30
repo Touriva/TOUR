@@ -14,6 +14,7 @@
 #include "consensus/consensus.h"
 #include "consensus/merkle.h"
 #include "consensus/validation.h"
+#include "crypto/equihash.h"
 #include "hash.h"
 #include "crypto/Lyra2Z/Lyra2Z.h"
 #include "crypto/Lyra2Z/Lyra2.h"
@@ -30,6 +31,7 @@
 #include "masternode-payments.h"
 #include "masternode-sync.h"
 #include "validationinterface.h"
+
 
 #include <boost/thread.hpp>
 #include <boost/tuple/tuple.hpp>
@@ -420,6 +422,22 @@ void static BitcoinMiner(const CChainParams& chainparams, CConnman& connman)
             //
             int64_t nStart = GetTime();
             arith_uint256 hashTarget = arith_uint256().SetCompact(pblock->nBits);
+            
+            unsigned int n=Params().EquihashN();
+			unsigned int k=Params().EquihashK(); 
+            blake2b_state eh_state;
+			EhInitialiseState(n, k, eh_state);
+
+			// I = the block header minus nonce and solution.
+			CEquihashInput I{*pblock};
+			CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+			ss << I;
+			
+			//LogPrintf("EQUIHASH INPUT HEADER %s\n", HexStr(ss.begin(), ss.end()).c_str());
+
+			// H(I||...
+			blake2b_update(&eh_state, (unsigned char*)&ss[0], ss.size());
+            
             while (true)
             {
                 unsigned int nHashesDone = 0;
@@ -427,29 +445,105 @@ void static BitcoinMiner(const CChainParams& chainparams, CConnman& connman)
                 uint256 thash;
                 while (true)
                 {
-                    lyra2z_hash(BEGIN(pblock->nVersion), BEGIN(thash));
-                    if (UintToArith256(thash) <= hashTarget)
+                    if (pblock->nTime < Params().GetConsensus().nEquihashStartTime)
                     {
-                        // Found a solution
-                        SetThreadPriority(THREAD_PRIORITY_NORMAL);
-                        LogPrintf("TOURMiner:\n  proof-of-work found\n  hash: %s\n  target: %s\n", thash.GetHex(), hashTarget.GetHex());
-                        ProcessBlockFound(pblock, chainparams);
-                        SetThreadPriority(THREAD_PRIORITY_LOWEST);
-                        coinbaseScript->KeepScript();
+						// Lyra2Z solve
+						LogPrintf("Lyra2Z solve\n");
+						lyra2z_hash(BEGIN(pblock->nVersion), BEGIN(thash));
+						if (UintToArith256(thash) <= hashTarget)
+						{
+							// Found a solution (Lyra2Z)
+							SetThreadPriority(THREAD_PRIORITY_NORMAL);
+							LogPrintf("TOURMiner:\n  proof-of-work found\n  hash: %s\n  target: %s\n", thash.GetHex(), hashTarget.GetHex());
+							ProcessBlockFound(pblock, chainparams);
+							SetThreadPriority(THREAD_PRIORITY_LOWEST);
+							coinbaseScript->KeepScript();
 
-                        // In regression test mode, stop mining after a block is found. This
-                        // allows developers to controllably generate a block on demand.
-                        if (chainparams.MineBlocksOnDemand())
-                            throw boost::thread_interrupted();
+							// In regression test mode, stop mining after a block is found. This
+							// allows developers to controllably generate a block on demand.
+							if (chainparams.MineBlocksOnDemand())
+								throw boost::thread_interrupted();
 
-                        break;
-                    }
-                    pblock->nNonce += 1;
-                    nHashesDone += 1;
-                    if ((pblock->nNonce & 0xFF) == 0)
-                        break;
+							break;
+						}
+						pblock->nNonce += 1;
+						nHashesDone += 1;
+						if ((pblock->nNonce & 0xFF) == 0)
+							break;
+						
+					}
+					else
+					{
+						// Equihash solve
+						LogPrintf("Equihash solve\n");
+
+						pblock->nNonceNew = ArithToUint256(UintToArith256(pblock->nNonceNew) + 1);
+
+						// H(I||V||...
+						blake2b_state curr_state;
+						curr_state = eh_state;
+						blake2b_update(&curr_state, pblock->nNonceNew.begin(), pblock->nNonceNew.size());
+						//blake2b_update(&curr_state, (unsigned char *)&pblock->nNonce, sizeof(pblock->nNonce));
+
+						LogPrintf("EQUIHASH INPUT NONCE %s\n",pblock->nNonceNew.ToString());
+						LogPrintf("EQUIHASH curr_state %s\n", HexStr(&curr_state.buf[0], &curr_state.buf[curr_state.buflen]).c_str());
+
+						// (x_1, x_2, ...) = A(I, V, n, k)
+						std::function<bool(std::vector<unsigned char>)> validBlock = [&pblock](std::vector<unsigned char> soln)
+						{
+							pblock->nSolution = soln;  
+							
+							LogPrintf("EQUIHASH SOLUTION SIZE = %i\n", soln.size());
+							LogPrintf("EQUIHASH SOLUTION HEX %s\n", HexStr(soln.begin(), soln.end()).c_str());
+							
+							LogPrintf("pblock to string  = %s\n", pblock->ToString().c_str());
+							return CheckProofOfWork(pblock->GetHash(), pblock->nBits, Params().GetConsensus());
+						};
+						
+						//bool found = EhBasicSolveUncancellable(n, k, curr_state, validBlock);
+						bool found = EhOptimisedSolveUncancellable(n, k, curr_state, validBlock);
+						
+						if (found)
+						{
+							// Found a solution (Equihash)
+							break;
+						}
+					}
                 }
+                
+                
+                // Equihash solution found
+				{
+					SetThreadPriority(THREAD_PRIORITY_NORMAL);
+					LogPrintf("TOURMiner:\n  proof-of-work found\n  hash: %s\n  target: %s\n", pblock->GetHash().GetHex(), hashTarget.GetHex());
+					
+					LogPrintf("THIS NEW BLOCK: %s\n", pblock->ToString());
+					
+					ProcessBlockFound(pblock, chainparams);
+					SetThreadPriority(THREAD_PRIORITY_LOWEST);
+					coinbaseScript->KeepScript();
 
+					// In regression test mode, stop mining after a block is found. This
+					// allows developers to controllably generate a block on demand.
+					if (chainparams.MineBlocksOnDemand())
+						throw boost::thread_interrupted();
+
+					break;
+				}
+                
+                
+                
+                //std::shared_ptr<const CBlock> shared_pblock = std::make_shared<const CBlock>(*pblock);
+				//if (!ProcessNewBlock(Params(), shared_pblock, true, nullptr))
+				//	throw JSONRPCError(RPC_INTERNAL_ERROR, "ProcessNewBlock, block not accepted");
+				//++nHeight;
+				//blockHashes.push_back(pblock->GetHash().GetHex());
+
+				coinbaseScript->KeepScript();
+				
+                
+                
+                
                 // Check for stop or if block needs to be rebuilt
                 boost::this_thread::interruption_point();
                 // Regtest mode doesn't require peers
@@ -471,6 +565,9 @@ void static BitcoinMiner(const CChainParams& chainparams, CConnman& connman)
                     // Changing pblock->nTime can change work required on testnet:
                     hashTarget.SetCompact(pblock->nBits);
                 }
+                
+                
+                
             }
         }
     }

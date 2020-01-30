@@ -24,14 +24,16 @@ namespace Consensus {
 class CBlockHeader
 {
 public:
-    static const size_t HEADER_SIZE = 4+32+32+4+4+4;  // Excluding Equihash solution
+    static const size_t HEADER_SIZE = 4+32+32+32+4+4+32;  // 140 Excluding Equihash solution
     // header
     int32_t nVersion;
     uint256 hashPrevBlock;
     uint256 hashMerkleRoot;
+    uint256 hashReserved; // dummy padding for header serialization compatibility
     uint32_t nTime;
     uint32_t nBits;
     uint32_t nNonce;
+    uint256 nNonceNew; // new, wider nonce, for Equihash solvers
     std::vector<unsigned char> nSolution;  // Equihash solution.
 
     CBlockHeader()
@@ -47,9 +49,24 @@ public:
         nVersion = this->nVersion;
         READWRITE(hashPrevBlock);
         READWRITE(hashMerkleRoot);
+        
+        if (IsEquihash())
+        {   
+            READWRITE(hashReserved);
+        }
+        
         READWRITE(nTime);
         READWRITE(nBits);
-        READWRITE(nNonce);
+        
+        if (IsEquihash())
+        {   
+            READWRITE(nNonceNew);
+        }
+        else
+        {
+			READWRITE(nNonce);
+		}
+
         if (IsEquihash())
         {   
             READWRITE(nSolution);
@@ -61,9 +78,11 @@ public:
         nVersion = 0;
         hashPrevBlock.SetNull();
         hashMerkleRoot.SetNull();
+        hashReserved.SetNull();
         nTime = 0;
         nBits = 0;
         nNonce = 0;
+        nNonceNew.SetNull();
     }
 
     bool IsNull() const
@@ -132,9 +151,11 @@ public:
         block.nVersion       = nVersion;
         block.hashPrevBlock  = hashPrevBlock;
         block.hashMerkleRoot = hashMerkleRoot;
+        block.hashReserved   = hashReserved;
         block.nTime          = nTime;
         block.nBits          = nBits;
         block.nNonce         = nNonce;
+        block.nNonceNew      = nNonceNew;
         block.nSolution      = nSolution;
         return block;
     }
@@ -162,6 +183,7 @@ public:
         READWRITE(this->nVersion);
         READWRITE(hashPrevBlock);
         READWRITE(hashMerkleRoot);
+        READWRITE(hashReserved);
         READWRITE(nTime);
         READWRITE(nBits);
     }

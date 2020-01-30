@@ -222,7 +222,8 @@ public:
         consensus.nMajorityWindow = 100;
         consensus.BIP34Height = 0;
         consensus.BIP34Hash = uint256S("0x000005fddca5ac4305fd8b278c3884581ab82e97421fc36c49abf7c104e21386");
-        consensus.powLimit = uint256S("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+        //consensus.powLimit = uint256S("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+        consensus.powLimit = uint256S("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         consensus.nPowTargetTimespan = 24 * 60 * 60; // TOUR: 1 day
         consensus.nPowTargetSpacing = 2 * 60; // TOUR: 2 minutes
         consensus.fPowAllowMinDifficultyBlocks = true;
@@ -248,6 +249,7 @@ public:
 		// PoW algorithm change to Equihash [n=192, k=7]
         consensus.nEquihashStartTime = 1579910400; // Sat, 25th Jan 2020 00:00:00 GMT
         const size_t N = 192, K = 7;
+        //const size_t N = 96, K = 5;
         BOOST_STATIC_ASSERT(equihash_parameters_acceptable(N, K));
         nEquihashN = N;
         nEquihashK = K;
@@ -297,10 +299,12 @@ public:
 
         vFixedSeeds = std::vector<SeedSpec6>(pnSeed6_test, pnSeed6_test + ARRAYLEN(pnSeed6_test));
 
-        fMiningRequiresPeers = true;
+        //fMiningRequiresPeers = true;
+        fMiningRequiresPeers = false; // for preliminary tests
         fDefaultConsistencyChecks = false;
         fRequireStandard = false;
-        fMineBlocksOnDemand = true;
+        //fMineBlocksOnDemand = true;
+        fMineBlocksOnDemand = false;
         fTestnetToBeDeprecatedFieldRPC = true;
 
         nPoolMaxTransactions = 3;
@@ -366,6 +370,7 @@ public:
 
 		// PoW algorithm change to Equihash [n=192, k=7]
         consensus.nEquihashStartTime = 1579910400; // Sat, 25th Jan 2020 00:00:00 GMT
+        //const size_t N = 192, K = 7;
         const size_t N = 192, K = 7;
         BOOST_STATIC_ASSERT(equihash_parameters_acceptable(N, K));
         nEquihashN = N;

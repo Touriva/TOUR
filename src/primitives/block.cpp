@@ -22,31 +22,32 @@ bool CBlockHeader::IsEquihash() const {
 
 bool CBlockHeader::IsEquihash(const Consensus::Params& params) const {
     bool result = nTime >= params.nEquihashStartTime;
-    if (result)
-    {
-        printf("Equihash\n");
-    }
-    else
-    {
-        printf ("Lyra2Z\n");
-    }
     return result;
 }
 
 uint256 CBlockHeader::GetHash(const Consensus::Params& params) const
 {
+	uint256 thash;
+    
     if (IsEquihash(params))
     {
         // Equihash epoch, new block format
-       return SerializeHash(*this);
+        thash = SerializeHash(*this);
     }
     else
     {
         // legacy block format
-        uint256 thash;
-        lyra2z_hash(BEGIN(nVersion), BEGIN(thash));
-        return thash;
+        unsigned char legacy_header[80];
+		memcpy(&legacy_header[0], BEGIN(nVersion), 4);
+		memcpy(&legacy_header[4], BEGIN(hashPrevBlock), 32);
+		memcpy(&legacy_header[36], BEGIN(hashMerkleRoot), 32);
+		memcpy(&legacy_header[68], BEGIN(nTime), 4);
+		memcpy(&legacy_header[72], BEGIN(nBits), 4);
+		memcpy(&legacy_header[76], BEGIN(nNonce), 4);
+        lyra2z_hash(BEGIN(legacy_header), BEGIN(thash));
     }
+    
+    return thash;
 }
 
 uint256 CBlockHeader::GetHash() const
@@ -58,13 +59,28 @@ uint256 CBlockHeader::GetHash() const
 std::string CBlock::ToString() const
 {
     std::stringstream s;
-    s << strprintf("CBlock(hash=%s, ver=%d, hashPrevBlock=%s, hashMerkleRoot=%s, nTime=%u, nBits=%08x, nNonce=%u, vtx=%u)\n",
-        GetHash().ToString(),
-        nVersion,
-        hashPrevBlock.ToString(),
-        hashMerkleRoot.ToString(),
-        nTime, nBits, nNonce,
-        vtx.size());
+    
+    if (IsEquihash())
+    {
+		s << strprintf("CBlock(hash=%s, ver=%d, hashPrevBlock=%s, hashMerkleRoot=%s, nTime=%u, nBits=%08x, nNonce=%s, vtx=%u)\n",
+			GetHash().ToString(),
+			nVersion,
+			hashPrevBlock.ToString(),
+			hashMerkleRoot.ToString(),
+			nTime, nBits, nNonceNew.ToString(),
+			vtx.size());
+	}
+	else
+	{
+		s << strprintf("CBlock(hash=%s, ver=%d, hashPrevBlock=%s, hashMerkleRoot=%s, nTime=%u, nBits=%08x, nNonce=%u, vtx=%u)\n",
+			GetHash().ToString(),
+			nVersion,
+			hashPrevBlock.ToString(),
+			hashMerkleRoot.ToString(),
+			nTime, nBits, nNonce,
+			vtx.size());		
+	}
+	
     for (unsigned int i = 0; i < vtx.size(); i++)
     {
         s << "  " << vtx[i].ToString() << "\n";
