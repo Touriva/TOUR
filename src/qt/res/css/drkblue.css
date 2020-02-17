@@ -82,7 +82,7 @@ background-color:transparent;
 }
 
 .QValidatedLineEdit, .QLineEdit { /* Text Entry Fields */
-border: 1px solid #82C3E6;
+border: 1px solid #6F3F8C;
 font-size:11px;
 min-height:25px;
 outline:0;
@@ -114,7 +114,7 @@ padding-bottom:5px;
 }
 
 QPushButton:hover {
-background-color:qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: .01 #5C3574, stop: .1 #46AADE, stop: .95 #46AADE, stop: 1 #47245c);
+background-color:qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: .01 #5C3574, stop: .1 #6F3F8C, stop: .95 #6F3F8C, stop: 1 #47245c);
 }
 
 QPushButton:focus {
@@ -127,7 +127,7 @@ border:1px solid #333;
 }
 
 QComboBox { /* Dropdown Menus */
-border:1px solid #82C3E6;
+border:1px solid #6F3F8C;
 padding: 3px 5px 3px 5px;
 background:#fcfcfc;
 min-height:25px;
@@ -183,7 +183,7 @@ selection-color:transparent;
 }
 
 QAbstractSpinBox {
-border:1px solid #82C3E6;
+border:1px solid #6F3F8C;
 padding: 3px 5px 3px 5px;
 background:#fcfcfc;
 min-height:25px;
@@ -196,8 +196,8 @@ subcontrol-position: top right;
 width:21px;
 background:#fcfcfc;
 border-left:0px;
-border-right:1px solid #82C3E6;
-border-top:1px solid #82C3E6;
+border-right:1px solid #6F3F8C;
+border-top:1px solid #6F3F8C;
 border-bottom:0px;
 padding-right:1px;
 padding-left:5px;
@@ -215,8 +215,8 @@ width:21px;
 background:#fcfcfc;
 border-top:0px;
 border-left:0px;
-border-right:1px solid #82C3E6;
-border-bottom:1px solid #82C3E6;
+border-right:1px solid #6F3F8C;
+border-bottom:1px solid #6F3F8C;
 padding-right:1px;
 padding-left:5px;
 padding-bottom:2px;
@@ -500,7 +500,7 @@ padding-right:10px;
 }
 
 QDialog#SignVerifyMessageDialog QPlainTextEdit { /* Message Signing Text */
-border:1px solid #82C3E6;
+border:1px solid #6F3F8C;
 background-color:#fff;
 }
 
