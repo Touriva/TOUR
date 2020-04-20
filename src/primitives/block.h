@@ -10,6 +10,10 @@
 #include "serialize.h"
 #include "uint256.h"
 
+namespace Consensus {
+    struct Params;
+};
+
 /** Nodes collect new transactions into a block, hash them into a hash tree,
  * and scan through nonce values to make the block's hash satisfy proof-of-work
  * requirements.  When they solve the proof-of-work, they broadcast the block
@@ -20,13 +24,17 @@
 class CBlockHeader
 {
 public:
+    static const size_t HEADER_SIZE = 4+32+32+32+4+4+32;  // 140 Excluding Equihash solution
     // header
     int32_t nVersion;
     uint256 hashPrevBlock;
     uint256 hashMerkleRoot;
+    uint256 hashReserved; // dummy padding for header serialization compatibility
     uint32_t nTime;
     uint32_t nBits;
     uint32_t nNonce;
+    uint256 nNonceNew; // new, wider nonce, for Equihash solvers
+    std::vector<unsigned char> nSolution;  // Equihash solution.
 
     CBlockHeader()
     {
@@ -41,9 +49,28 @@ public:
         nVersion = this->nVersion;
         READWRITE(hashPrevBlock);
         READWRITE(hashMerkleRoot);
+        
+        if (IsEquihash())
+        {   
+            READWRITE(hashReserved);
+        }
+        
         READWRITE(nTime);
         READWRITE(nBits);
-        READWRITE(nNonce);
+        
+        if (IsEquihash())
+        {   
+            READWRITE(nNonceNew);
+        }
+        else
+        {
+			READWRITE(nNonce);
+		}
+
+        if (IsEquihash())
+        {   
+            READWRITE(nSolution);
+        }
     }
 
     void SetNull()
@@ -51,9 +78,11 @@ public:
         nVersion = 0;
         hashPrevBlock.SetNull();
         hashMerkleRoot.SetNull();
+        hashReserved.SetNull();
         nTime = 0;
         nBits = 0;
         nNonce = 0;
+        nNonceNew.SetNull();
     }
 
     bool IsNull() const
@@ -62,11 +91,18 @@ public:
     }
 
     uint256 GetHash() const;
+    
+    uint256 GetHash(const Consensus::Params&) const;
 
     int64_t GetBlockTime() const
     {
         return (int64_t)nTime;
     }
+    
+    bool IsEquihash() const;
+    
+    bool IsEquihash(const Consensus::Params&) const;
+    
 };
 
 
@@ -115,15 +151,43 @@ public:
         block.nVersion       = nVersion;
         block.hashPrevBlock  = hashPrevBlock;
         block.hashMerkleRoot = hashMerkleRoot;
+        block.hashReserved   = hashReserved;
         block.nTime          = nTime;
         block.nBits          = nBits;
         block.nNonce         = nNonce;
+        block.nNonceNew      = nNonceNew;
+        block.nSolution      = nSolution;
         return block;
     }
 
     std::string ToString() const;
 };
 
+/**
+ * Custom serializer for CBlockHeader that omits the nonce and solution, for use
+ * as input to Equihash.
+ */
+class CEquihashInput : private CBlockHeader
+{
+public:
+    CEquihashInput(const CBlockHeader &header)
+    {
+        CBlockHeader::SetNull();
+        *((CBlockHeader*)this) = header;
+    }
+
+    ADD_SERIALIZE_METHODS;
+
+    template <typename Stream, typename Operation>
+    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion) {
+        READWRITE(this->nVersion);
+        READWRITE(hashPrevBlock);
+        READWRITE(hashMerkleRoot);
+        READWRITE(hashReserved);
+        READWRITE(nTime);
+        READWRITE(nBits);
+    }
+};
 
 /** Describes a place in the block chain to another node such that if the
  * other node doesn't have the same branch, it can find a recent common trunk.

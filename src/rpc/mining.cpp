@@ -13,6 +13,7 @@
 #include "consensus/params.h"
 #include "consensus/validation.h"
 #include "core_io.h"
+#include "crypto/equihash.h"
 #include "init.h"
 #include "validation.h"
 #include "miner.h"
@@ -164,7 +165,10 @@ UniValue generate(const UniValue& params, bool fHelp)
     }
     unsigned int nExtraNonce = 0;
     UniValue blockHashes(UniValue::VARR);
-    while (nHeight < nHeightEnd)
+    unsigned int n=Params().EquihashN();
+    unsigned int k=Params().EquihashK();    
+    
+    while (nHeight < nHeightEnd && !ShutdownRequested())
     {
         std::unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock(Params(), coinbaseScript->reserveScript));
         if (!pblocktemplate.get())
@@ -174,18 +178,66 @@ UniValue generate(const UniValue& params, bool fHelp)
             LOCK(cs_main);
             IncrementExtraNonce(pblock, chainActive.Tip(), nExtraNonce);
         }
-        while (!CheckProofOfWork(pblock->GetHash(), pblock->nBits, Params().GetConsensus())) {
-            // Yes, there is a chance every nonce could fail to satisfy the -regtest
-            // target -- 1 in 2^(2^32). That ain't gonna happen.
-            ++pblock->nNonce;
-        }
-        if (!ProcessNewBlock(Params(), pblock, true, NULL, NULL))
-            throw JSONRPCError(RPC_INTERNAL_ERROR, "ProcessNewBlock, block not accepted");
-        ++nHeight;
-        blockHashes.push_back(pblock->GetHash().GetHex());
+        
+        if (pblock->nTime < Params().GetConsensus().nEquihashStartTime)
+        {
+			// Lyra2Z solve
+			LogPrintf("Lyra2Z solve\n");
+			while (!CheckProofOfWork(pblock->GetHash(), pblock->nBits, Params().GetConsensus())) {
+				// Yes, there is a chance every nonce could fail to satisfy the -regtest
+				// target -- 1 in 2^(2^32). That ain't gonna happen.
+				++pblock->nNonce;
+			}
+		}
+		else
+		{
+			// Equihash solve
+			LogPrintf("Equihash solve\n");
+            blake2b_state eh_state;
+            EhInitialiseState(n, k, eh_state);
 
-        //mark script as important because it was used at least for one coinbase output
-        coinbaseScript->KeepScript();
+            // I = the block header minus nonce and solution.
+            CEquihashInput I{*pblock};
+            CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+            ss << I;
+
+            // H(I||...
+            blake2b_update(&eh_state, (unsigned char*)&ss[0], ss.size());
+
+            while (true)
+            {
+                ++pblock->nNonce;
+
+                // H(I||V||...
+                blake2b_state curr_state;
+                curr_state = eh_state;
+                //blake2b_update(&curr_state, pblock->nNonce.begin(), pblock->nNonce.size());
+                blake2b_update(&curr_state, (unsigned char *)&pblock->nNonce, sizeof(pblock->nNonce));
+
+                // (x_1, x_2, ...) = A(I, V, n, k)
+                std::function<bool(std::vector<unsigned char>)> validBlock = [&pblock](std::vector<unsigned char> soln)
+                {
+                    pblock->nSolution = soln;  
+                    return CheckProofOfWork(pblock->GetHash(), pblock->nBits, Params().GetConsensus());
+                };
+                bool found = EhBasicSolveUncancellable(n, k, curr_state, validBlock);
+                
+                if (found)
+                {
+                    break;
+                }
+            }			
+		}
+		
+		
+		if (!ProcessNewBlock(Params(), pblock, true, NULL, NULL))
+			throw JSONRPCError(RPC_INTERNAL_ERROR, "ProcessNewBlock, block not accepted");
+		++nHeight;
+		blockHashes.push_back(pblock->GetHash().GetHex());
+
+		//mark script as important because it was used at least for one coinbase output
+		coinbaseScript->KeepScript();
+		
     }
     return blockHashes;
 }

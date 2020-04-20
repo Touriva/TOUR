@@ -18,6 +18,14 @@
 
 #include "chainparamsseeds.h"
 
+// For equihash_parameters_acceptable.
+#include <crypto/equihash.h>
+const unsigned int MAX_HEADERS_RESULTS = 2000;
+const unsigned int MAX_PROTOCOL_MESSAGE_LENGTH = 4 * 1000 * 1000;
+#define equihash_parameters_acceptable(N, K) \
+    ((CBlockHeader::HEADER_SIZE + equihash_solution_size(N, K))*MAX_HEADERS_RESULTS < \
+     MAX_PROTOCOL_MESSAGE_LENGTH-1000)
+
 
 static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesisOutputScript, uint32_t nTime, uint32_t nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
 {
@@ -98,6 +106,16 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_DIP0001].nWindowSize = 4032;
         consensus.vDeployments[Consensus::DEPLOYMENT_DIP0001].nThreshold = 3226; // 80% of 4032
 
+        // PoW algorithm change to Equihash [n=192, k=7]
+        consensus.nEquihashStartTime = 1579910400; // Sat, 25th Jan 2020 00:00:00 GMT
+        const size_t N = 192, K = 7;
+        BOOST_STATIC_ASSERT(equihash_parameters_acceptable(N, K));
+        nEquihashN = N;
+        nEquihashK = K;
+        
+        // Lwma related params
+        consensus.nZawyLwmaAveragingWindow = 15;
+        
         // The best chain should have at least this much work.
        consensus.nMinimumChainWork = uint256S("0000000000000000000000000000000000000000000000000000000000b0001a"); // 10
 
@@ -120,7 +138,7 @@ public:
         nPruneAfterHeight = 100000;
 
         genesis = CreateGenesisBlock(1539987651, 1731759, 0x1e0ffff0, 1, 50 * COIN);
-        consensus.hashGenesisBlock = genesis.GetHash();
+        consensus.hashGenesisBlock = genesis.GetHash(consensus);
         assert(consensus.hashGenesisBlock == uint256S("0x0000016a7cb7856c7f94dca410771e4e76f3c7f127ab2f4dfb7cd8a16ebb33c7"));
         assert(genesis.hashMerkleRoot == uint256S("0x477bb1f93cb2b4a412d76750c099c35a940e65a4f2008845abab8583f68f2b81"));
 
@@ -204,7 +222,8 @@ public:
         consensus.nMajorityWindow = 100;
         consensus.BIP34Height = 0;
         consensus.BIP34Hash = uint256S("0x000005fddca5ac4305fd8b278c3884581ab82e97421fc36c49abf7c104e21386");
-        consensus.powLimit = uint256S("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+        //consensus.powLimit = uint256S("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+        consensus.powLimit = uint256S("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         consensus.nPowTargetTimespan = 24 * 60 * 60; // TOUR: 1 day
         consensus.nPowTargetSpacing = 2 * 60; // TOUR: 2 minutes
         consensus.fPowAllowMinDifficultyBlocks = true;
@@ -227,6 +246,18 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_DIP0001].nWindowSize = 100;
         consensus.vDeployments[Consensus::DEPLOYMENT_DIP0001].nThreshold = 50; // 50% of 100
 
+		// PoW algorithm change to Equihash [n=192, k=7]
+        consensus.nEquihashStartTime = 1579910400; // Sat, 25th Jan 2020 00:00:00 GMT
+        const size_t N = 192, K = 7;
+        //const size_t N = 96, K = 5;
+        BOOST_STATIC_ASSERT(equihash_parameters_acceptable(N, K));
+        nEquihashN = N;
+        nEquihashK = K;
+        
+        // Lwma related params
+        consensus.nZawyLwmaAveragingWindow = 15;
+
+
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork = uint256S("0x0000000000000000000000000000000000000000000000000000000000600015"); // 5
 
@@ -244,7 +275,7 @@ public:
         nPruneAfterHeight = 1000;
 
         genesis = CreateGenesisBlock(1537508794, 1851627, 0x1e0ffff0, 1, 50 * COIN);
-        consensus.hashGenesisBlock = genesis.GetHash();
+        consensus.hashGenesisBlock = genesis.GetHash(consensus);
         assert(consensus.hashGenesisBlock == uint256S("0x00000eb7e30782b34764b8f8c92865f73e789efe54c04970548082875b25a5f5"));
         assert(genesis.hashMerkleRoot == uint256S("0x477bb1f93cb2b4a412d76750c099c35a940e65a4f2008845abab8583f68f2b81"));
 
@@ -268,10 +299,12 @@ public:
 
         vFixedSeeds = std::vector<SeedSpec6>(pnSeed6_test, pnSeed6_test + ARRAYLEN(pnSeed6_test));
 
-        fMiningRequiresPeers = true;
+        //fMiningRequiresPeers = true;
+        fMiningRequiresPeers = false; // for preliminary tests
         fDefaultConsistencyChecks = false;
         fRequireStandard = false;
-        fMineBlocksOnDemand = true;
+        //fMineBlocksOnDemand = true;
+        fMineBlocksOnDemand = false;
         fTestnetToBeDeprecatedFieldRPC = true;
 
         nPoolMaxTransactions = 3;
@@ -335,6 +368,18 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_DIP0001].nStartTime = 0;
         consensus.vDeployments[Consensus::DEPLOYMENT_DIP0001].nTimeout = 999999999999ULL;
 
+		// PoW algorithm change to Equihash [n=192, k=7]
+        consensus.nEquihashStartTime = 1579910400; // Sat, 25th Jan 2020 00:00:00 GMT
+        //const size_t N = 192, K = 7;
+        const size_t N = 192, K = 7;
+        BOOST_STATIC_ASSERT(equihash_parameters_acceptable(N, K));
+        nEquihashN = N;
+        nEquihashK = K;
+        
+        // Lwma related params
+        consensus.nZawyLwmaAveragingWindow = 15;
+
+
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork = uint256S("0x00");
 
@@ -351,7 +396,7 @@ public:
         nPruneAfterHeight = 1000;
 
         genesis = CreateGenesisBlock(1537508794, 2, 0x207fffff, 1, 50 * COIN);
-        consensus.hashGenesisBlock = genesis.GetHash();
+        consensus.hashGenesisBlock = genesis.GetHash(consensus);
         assert(consensus.hashGenesisBlock == uint256S("0x1fe39ef53a10f2ced58ffc7cf52ca80a03881fd5d62e8284831989ec89add8bb"));
         assert(genesis.hashMerkleRoot == uint256S("0x477bb1f93cb2b4a412d76750c099c35a940e65a4f2008845abab8583f68f2b81"));
 
